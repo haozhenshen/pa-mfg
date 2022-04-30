@@ -92,9 +92,14 @@ class Runner():
         params = get_foward_net_params(models)
         #Set up optimizer
         optimizer = self.get_optimizer(params)
-
+        current_batch = 0
         if self.args.resume_training:
-            pass
+            try:
+                load_model(models, self.args.load_epoch, self.config.model.delta, self.args, self.config.model)
+                current_batch = self.args.load_epoch
+                print(f'Pretrained model found, loaded from epoch {self.args.load_epoch} with delta = {self.config.model.delta}.')
+            except:
+                print("No pretrained model found. Training from scratch.")
 
         #Generate an initial batch
         dB = SampleBMIncr(self.config.model)
@@ -102,11 +107,11 @@ class Runner():
 
         loss_lst = []
 
-        pbar = trange(0, self.config.training.n_epochs, desc="BSDE_training", unit="Epoch")
+        pbar = trange(current_batch, self.config.training.n_epochs, desc="BSDE_training", unit="Epoch")
         for k in pbar:
             sloss=0
             if k % self.config.training.plot_freq == 0:
-                plot_path(k, models, get_path(dB, init_x, models, self.config.model), self.args, self.config.model)
+                plot_path(k, models, get_path, self.args, self.config.model)
             for _ in range(0, self.config.training.optim_steps):
                 optimizer.zero_grad()
                 loss = mse(dB, init_x, self.config.model.delta, models, self.config.model)
@@ -121,6 +126,6 @@ class Runner():
             avgloss = sloss/(self.config.training.optim_steps * self.config.model.k)
             loss_lst.append(avgloss)
             pbar.set_postfix({'avg_loss': avgloss})
-            if k % 20 == 0:
-                save_model(models, k, self.config.model.delta)
-        save_model(models, self.config.training.n_epochs, self.config.model.delta)
+            if k % 20 == 0 and k != 0:
+                save_model(models, k, self.config.model.delta, self.args, self.config.model)
+        save_model(models, self.config.training.n_epochs, self.config.model.delta, self.args, self.config.model)

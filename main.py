@@ -11,7 +11,7 @@ import numpy as np
 from runners import *
 
 
-def parse_args_and_config(args):
+def parse_args_and_config():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     
     parser.add_argument('--runner', type=str, default='Runner', help='Runner for corresponding probelm setting.')
@@ -71,17 +71,14 @@ def dict2namespace(config):
 
 
 def main():
-    torch.cuda.empty_cache()
-    args, config = parse_args_and_config(["--runner", "Runner", "--config", "finite_banking_3p.yml", "--plot_folder", "'plots'"])
-    print(type(config.training.plot_freq))
+    args, config = parse_args_and_config()
     runner = eval(args.runner)(args, config)
     if not args.test:
           runner.train()
     # else:
     #   runner.test()
-    # return 0
+    return 0
 
 
 if __name__ == '__main__':
-    #sys.exit(main())
-    main()
+    sys.exit(main())

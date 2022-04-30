@@ -52,12 +52,15 @@ def get_cmap(n, name='hsv'):
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
 
-def plot_path(batch, models, paths, args, config):
+def plot_path(batch, models, get_path, args, config):
     n = config.n
     k = config.k
     t = config.t
     nt = config.nt
-    
+    dB = SampleBMIncr(config)
+    init_x =  sample_mu(config)
+    paths = get_path(dB, init_x, models, config)
+
     for i in range(k):
         number_of_paths = 64
         idx_list = np.random.choice(n[i], number_of_paths, replace = False)
