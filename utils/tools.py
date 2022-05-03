@@ -64,13 +64,20 @@ def plot_path(batch, models, get_path, args, config):
     for i in range(k):
         number_of_paths = 64
         idx_list = np.random.choice(n[i], number_of_paths, replace = False)
-        
-        plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
-                                     'lam_plot','u_plot','v_plot','h_plot','phi_plot',
-                                     'g_rental_plot','cum_g_rental_plot','gam_cur_plot',
-                                     'gam_prev_plot','cum_gam_cur_plot','cum_gam_prev_plot', 
-                                     'cum_gam_cur_vol_plot', 'cum_gam_prev_vol_plot', 's_cur_plot', 
-                                     's_prev_plot', 'expan_rate_plot', 'cum_expan_rate_plot', 'theta_plot']}
+        if config.name == "fb3p":
+            plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
+                                        'lam_plot','u_plot','v_plot','h_plot','phi_plot',
+                                        'g_rental_plot','cum_g_rental_plot','gam_cur_plot',
+                                        'gam_prev_plot','cum_gam_cur_plot','cum_gam_prev_plot', 
+                                        'cum_gam_cur_vol_plot', 'cum_gam_prev_vol_plot', 's_cur_plot', 
+                                        's_prev_plot', 'expan_rate_plot', 'cum_expan_rate_plot', 'theta_plot']}
+        elif config.name == "naive3p":
+            plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
+                                        'u_plot','v_plot','h_plot',
+                                        'g_rental_plot','cum_g_rental_plot','gam_plot',
+                                        'cum_gam_plot',
+                                        'cum_gam_vol_plot', 's_plot', 
+                                        'expan_rate_plot', 'cum_expan_rate_plot']}
         for key in plots.keys():
             plots[key] = paths[key[:-5] + '_path'][i].detach().numpy()[idx_list]
         
@@ -96,25 +103,83 @@ def plot_path(batch, models, get_path, args, config):
       
         
         
-def create_gif_for_pop_k(k, config):    
-    filenames = {key: [] for key in ['x', 'n','y', 'a', 'lam', 'u','v','h','phi',
-                                'g_rental','cum_g_rental','gam_cur',
-                                'gam_prev','cum_gam_cur','cum_gam_prev', 
-                                'cum_gam_cur_vol', 'cum_gam_prev_vol', 's_cur', 
-                                's_prev', 'expan_rate', 'cum_expan_rate', 'theta']}
+def create_gif_for_pop_k(k, args, config):
+    if config.name == "fb3p":
+        filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h','phi',
+                                    'g_rental','cum_g_rental','gam_cur',
+                                    'gam_prev','cum_gam_cur','cum_gam_prev', 
+                                    'cum_gam_cur_vol', 'cum_gam_prev_vol', 's_cur', 
+                                    's_prev', 'expan_rate', 'cum_expan_rate', 'theta']}
+    elif config.name == "naive3p":
+        filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h',
+                                    'g_rental','cum_g_rental','gam',
+                                    'cum_gam',
+                                    'cum_gam_vol' , 's', 
+                                    'expan_rate', 'cum_expan_rate']}
     
     for i in range(0, config.training.n_epochs, config.training.plot_freq):
         # create file name and append it to a list
         
         for key in filenames.keys():
-            filenames[key].append('paths/' + key + f'_pop_{k}_batch_{i}.png')
+            filenames[key].append(args.log + 'paths/' + key + f'_pop_{k}_batch_{i}.png')
         
 
     for key in filenames.keys():
-        with imageio.get_writer('paths/' + key + f'_pop_{k}.gif', mode='I', duration=0.75) as writer:
+        with imageio.get_writer(args.log + 'paths/' + key + f'_pop_{k}.gif', mode='I', duration=0.75) as writer:
             for filename in filenames[key]:
                 image = imageio.imread(filename)
                 writer.append_data(image)
+
+
+def CI(paths):
+    return np.percentile(paths,5, axis=0), np.percentile(paths, 95, axis=0)
+
+def double_plot(path0, path1, loc, config, ci=False, price=False, xlab='Time', ylab=None, title=None):
+    num_path = path0.shape[0]
+    
+    t = path0.shape[1]
+    t_nt = np.array([i for i in range(0, t)]) * config.t/(config.nt-1)
+    
+    if price:
+        for s in range(num_path):
+            if s==0:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.5, label = "Current Price")      
+                plt.plot(t_nt,path1[s], color="red", alpha=0.5, label ="Previous Price")
+            else:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.5)
+                plt.plot(t_nt,path1[s], color="red", alpha=0.5)
+        plt.xlabel(xlab)
+        plt.title(title)
+        plt.legend()
+        plt.savefig(loc, dpi=600)
+    elif ci:
+        for s in range(num_path):
+            if s==0:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.05)      
+                plt.plot(t_nt,path1[s], color="red", alpha=0.05)
+            else:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.05)
+                plt.plot(t_nt,path1[s], color="red", alpha=0.05)
+        plt.fill_between(t_nt, CI(path0)[0], CI(path0)[1], color='b', alpha=0.5, label = "Population 0")
+        plt.fill_between(t_nt, CI(path1)[0], CI(path1)[1], color='r', alpha=0.5, label ="Population 1")
+        plt.xlabel(xlab)
+        plt.title(title)
+        plt.legend()
+        plt.savefig(loc, dpi=600)
+    else:
+        for s in range(num_path):
+            if s==0:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.5, label = "Population 0")      
+                plt.plot(t_nt,path1[s], color="red", alpha=0.5, label ="Population 1")
+            else:
+                plt.plot(t_nt,path0[s], color="blue", alpha=0.5)
+                plt.plot(t_nt,path1[s], color="red", alpha=0.5)
+        plt.xlabel(xlab)
+        plt.title(title)
+        plt.legend()
+        plt.savefig(loc, dpi=600)
+
+
 
 def save_model(models, batch, delta, args, config):
     for i in range(config.k):

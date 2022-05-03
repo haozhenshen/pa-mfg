@@ -1,8 +1,8 @@
 training:
-    n_epochs: 5
+    n_epochs: 10
     ngpu: 1
     optim_steps: 20
-    plot_freq: 1
+    plot_freq: 4
 
 
 optim:
@@ -13,7 +13,7 @@ optim:
     amsgrad: false
 
 model:
-    name: fb3p
+    name: naive3p
     layer_dim: 128
     delta: 0.1
     t: 3
@@ -27,8 +27,7 @@ model:
     h: [0.2, 0.5]
     sigma: [0.1, 0.15]
     zeta: [1.75, 1.25]
-    gamma_cur: [1.25, 1.75]
-    gamma_prev: [1.25, 1.75]
+    gamma: [1.25, 1.75]
     v: [0.6 , 0.2]
     m: [0.1, 0.1]
     beta: [1, 1]

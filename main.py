@@ -11,17 +11,17 @@ import numpy as np
 from runners import *
 
 
-def parse_args_and_config():
+def parse_args_and_config(args):
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     
-    parser.add_argument('--runner', type=str, default='Runner', help='Runner for corresponding probelm setting.')
-    parser.add_argument('--config', type=str, default='finite_banking_3p.yml',  help='Path to the config file')
+    parser.add_argument('--runner', type=str, default='Naive3p_Runner', help='Runner for corresponding probelm setting.')
+    parser.add_argument('--config', type=str, default='naive_3p.yml',  help='Path to the config file')
     parser.add_argument('--seed', type=int, default=1234, help='Random seed')
     parser.add_argument('--logs', type=str, default='log', help='Path for saving running related data.')
-    parser.add_argument('--doc', type=str, default='finite_banking_3_period', help='A string for documentation purpose')
+    parser.add_argument('--doc', type=str, default='naive_3_period', help='A string for documentation purpose')
 
     parser.add_argument('--test', action='store_true', help='Whether to test the model')
-    parser.add_argument('--resume_training', action='store_true', help='Whether to resume training')
+    parser.add_argument('--resume_training',  default='log', help='Resume training from certain epoch')
     parser.add_argument('-o', '--plot_folder', type=str, default='plots', help="The directory of plot outputs")
     
     args = parser.parse_args(args)
@@ -31,7 +31,6 @@ def parse_args_and_config():
     if not args.test:
         with open(os.path.join('configs', args.config), 'r') as f:
             config = yaml.safe_load(f)
-            print(type(config))
         new_config = dict2namespace(config)
         
         with open(os.path.join(args.log, 'config.yml'), 'w') as f:
@@ -71,12 +70,12 @@ def dict2namespace(config):
 
 
 def main():
-    args, config = parse_args_and_config()
+    args, config = parse_args_and_config(['--runner', 'Naive3p_Runner', '--config', 'naive_3p.yml', '--resume_training', '5'])
     runner = eval(args.runner)(args, config)
     if not args.test:
-          runner.train()
-    # else:
-    #   runner.test()
+        runner.train()
+    else:
+        runner.test()
     return 0
 
 

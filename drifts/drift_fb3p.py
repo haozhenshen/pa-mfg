@@ -1,9 +1,8 @@
 import numpy as np
 import torch as torch
-import torch.nn as nn
 import numpy as np
 
-def drift(pop, t, proc, config):
+def drift_fb3p(pop, t, proc, config):
     k = np.array(config.k)
     t1 = config.t1
     t2 = config.t2
