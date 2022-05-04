@@ -33,33 +33,37 @@ class Naive3p_Runner():
         models = {key: [] for key in ['n_models','y_models', 'a_models', 'u_models', 
                                     'v_models', 'h_models', 'z_n_models', 'z_y_models', 
                                     'z_a_models','z_u_models', 'z_v_models', 'z_h_models']}
-        
+
+        if not self.args.test:
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        else:
+            device = torch.device("cpu")
         for _ in range(k):
             n_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
             y_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
             a_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
     
             u_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
             v_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
             h_net = Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device)
+                        n_outputs=1).to(device)
             z_n_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, nt-1)]
+                        n_outputs=1).to(device) for i in range(0, nt-1)]
             z_y_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, t2-1)]
+                        n_outputs=1).to(device) for i in range(0, t2-1)]
             z_a_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, t2-1)]      
+                        n_outputs=1).to(device) for i in range(0, t2-1)]      
             z_u_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, t1-1)]
+                        n_outputs=1).to(device) for i in range(0, t1-1)]
             z_v_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, t1-1)]
+                        n_outputs=1).to(device) for i in range(0, t1-1)]
             z_h_nets = [Network(input_dims=[1], fc1_dims=layer_dim, fc2_dims=layer_dim,
-                        n_outputs=1).to(self.config.device) for i in range(0, t1-1)]
+                        n_outputs=1).to(device) for i in range(0, t1-1)]
             
             models["n_models"].append(n_net)
             models["y_models"].append(y_net)
@@ -99,8 +103,8 @@ class Naive3p_Runner():
 
             pbar = trange(current_batch, self.config.training.n_epochs, desc="BSDE_training", unit="Epoch")
             for k in pbar:
-                dB = SampleBMIncr(self.config.model)
-                init_x = sample_mu(self.config.model)
+                dB = SampleBMIncr(self.args, self.config.model)
+                init_x = sample_mu(self.args, self.config.model)
                 sloss=0
                 if k % self.config.training.plot_freq == 0:
                     plot_path(k, models, naive3p_getpath, self.args, self.config.model)
@@ -118,7 +122,7 @@ class Naive3p_Runner():
                 avgloss = sloss/(self.config.training.optim_steps * self.config.model.k)
                 loss_lst.append(avgloss)
                 pbar.set_postfix({'avg_loss': avgloss})
-                if k % 20 == 0 and k != 0:
+                if k % 50 == 0 and k != 0:
                     save_model(models, k, self.config.model.delta, self.args, self.config.model)
             save_model(models, self.config.training.n_epochs, self.config.model.delta, self.args, self.config.model)
 
@@ -127,22 +131,15 @@ class Naive3p_Runner():
         #Set up optimizer
         loaded = False
         try:
-            load_model(models, self.args.resume_training, self.config.model.delta, self.args, self.config.model)
+            load_model(models, self.config.training.n_epochs, self.config.model.delta, self.args, self.config.model)
             loaded = True
-            print(f'Pretrained model found, loaded from epoch {self.args.resume_training} with delta = {self.config.model.delta}.')
+            print(f'Pretrained model found, loaded from epoch {self.config.training.n_epochs} with delta = {self.config.model.delta}.')
             print(f'Creating process plots.')
         except:
             print("Testing failed. No pretrained model found.")
 
 
         if loaded:
-            dB = SampleBMIncr(self.config.model)
-            init_x =  sample_mu(self.config.model)
-            paths = naive3p_getpath(dB, init_x, models, self.config.model)
-
-            number_of_paths = 64
-            idx_list = np.random.choice(self.config.model.n[0], number_of_paths, replace = False)
-
             plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
                                         'u_plot','v_plot','h_plot',
                                         'g_rental_plot','cum_g_rental_plot','gam_plot',
@@ -150,14 +147,23 @@ class Naive3p_Runner():
                                         'cum_gam_vol_plot', 's_plot', 
                                         'expan_rate_plot', 'cum_expan_rate_plot']}
 
-            for key in plots.keys():
-                for i in range(self.config.model.k):
-                    plots[key].append(paths[key[:-5] + '_path'][i].detach().numpy()[idx_list])
-
+            for count in range(self.args.num_test_batch):
+   
+                dB = SampleBMIncr(self.args, self.config.model)
+                init_x =  sample_mu(self.args, self.config.model)
+                paths = naive3p_getpath(dB, init_x, models, self.config.model)
+                for key in plots.keys():
+                    for i in range(self.config.model.k):
+                        if count == 0:
+                            plots[key].append(paths[key[:-5] + '_path'][i].to("cpu").detach().numpy())
+                        else:
+                            plots[key][i] = np.concatenate((plots[key][i], paths[key[:-5] + '_path'][i].to("cpu").detach().numpy()), 0)
+            
 
             for key in plots.keys():
                 plt.clf()
-                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}.png', self.config.model, title=f'{key} Paths')
+                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}.png', self.args, self.config.model, title=f'{key} Paths')
                 plt.clf()
-                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}_CI.png', self.config.model, ci=True, title=f'{key} Paths 95% CI')
+                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}_CI.png', 
+                            self.args, self.config.model, ci=True, title=f'{key} Paths 95% CI')
                 plt.clf()

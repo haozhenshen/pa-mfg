@@ -1,5 +1,5 @@
 training:
-    n_epochs: 10
+    n_epochs: 200
     ngpu: 1
     optim_steps: 20
     plot_freq: 4

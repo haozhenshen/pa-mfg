@@ -4,23 +4,29 @@ import matplotlib.pyplot as plt
 import imageio
 
 
-def sample_mu(config):
+def sample_mu(args, config):
     v = config.v
     m = config.m
     n = config.n
     k = config.k
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if not args.test:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
     return [(v[i] + m[i] * torch.randn(n[i])).view(-1,1).to(device) for i in range(k)]
 
 
-def SampleBMIncr(config):
+def SampleBMIncr(args, config):
     # Returns Matrix of Dimension Npaths x Nsteps With Sample Increments of of BM
     # Here an increment is of the form dBt
     n = config.n
     nt = config.nt - 1
     t = config.t
     k = config.k
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if not args.test:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
     return [torch.FloatTensor(np.sqrt(t / nt) * np.random.randn(n[i], nt)).to(device) for i in range(k)]
 
 
@@ -57,8 +63,8 @@ def plot_path(batch, models, get_path, args, config):
     k = config.k
     t = config.t
     nt = config.nt
-    dB = SampleBMIncr(config)
-    init_x =  sample_mu(config)
+    dB = SampleBMIncr(args, config)
+    init_x =  sample_mu(args, config)
     paths = get_path(dB, init_x, models, config)
 
     for i in range(k):
@@ -134,8 +140,10 @@ def create_gif_for_pop_k(k, args, config):
 def CI(paths):
     return np.percentile(paths,5, axis=0), np.percentile(paths, 95, axis=0)
 
-def double_plot(path0, path1, loc, config, ci=False, price=False, xlab='Time', ylab=None, title=None):
-    num_path = path0.shape[0]
+def double_plot(path0, path1, loc, args, config, ci=False, price=False, xlab='Time', ylab=None, title=None):
+
+    num_path = 64
+    idx_list = np.random.choice(config.n[0] * args.num_test_batch, num_path, replace = False)
     
     t = path0.shape[1]
     t_nt = np.array([i for i in range(0, t)]) * config.t/(config.nt-1)
@@ -143,11 +151,11 @@ def double_plot(path0, path1, loc, config, ci=False, price=False, xlab='Time', y
     if price:
         for s in range(num_path):
             if s==0:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.5, label = "Current Price")      
-                plt.plot(t_nt,path1[s], color="red", alpha=0.5, label ="Previous Price")
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.5, label = "Current Price")      
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.5, label ="Previous Price")
             else:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.5)
-                plt.plot(t_nt,path1[s], color="red", alpha=0.5)
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.5)
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.5)
         plt.xlabel(xlab)
         plt.title(title)
         plt.legend()
@@ -155,11 +163,11 @@ def double_plot(path0, path1, loc, config, ci=False, price=False, xlab='Time', y
     elif ci:
         for s in range(num_path):
             if s==0:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.05)      
-                plt.plot(t_nt,path1[s], color="red", alpha=0.05)
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.05)      
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.05)
             else:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.05)
-                plt.plot(t_nt,path1[s], color="red", alpha=0.05)
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.05)
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.05)
         plt.fill_between(t_nt, CI(path0)[0], CI(path0)[1], color='b', alpha=0.5, label = "Population 0")
         plt.fill_between(t_nt, CI(path1)[0], CI(path1)[1], color='r', alpha=0.5, label ="Population 1")
         plt.xlabel(xlab)
@@ -169,11 +177,11 @@ def double_plot(path0, path1, loc, config, ci=False, price=False, xlab='Time', y
     else:
         for s in range(num_path):
             if s==0:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.5, label = "Population 0")      
-                plt.plot(t_nt,path1[s], color="red", alpha=0.5, label ="Population 1")
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.5, label = "Population 0")      
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.5, label ="Population 1")
             else:
-                plt.plot(t_nt,path0[s], color="blue", alpha=0.5)
-                plt.plot(t_nt,path1[s], color="red", alpha=0.5)
+                plt.plot(t_nt,path0[idx_list][s], color="blue", alpha=0.5)
+                plt.plot(t_nt,path1[idx_list][s], color="red", alpha=0.5)
         plt.xlabel(xlab)
         plt.title(title)
         plt.legend()
