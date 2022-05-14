@@ -70,12 +70,12 @@ def dict2namespace(config):
 
 
 def main():
-    args, config = parse_args_and_config(['--runner', 'Fb3p_Runner', '--config', 'finite_banking_3p.yml', '--doc', 'finite_banking_3_period','--test'])
+    args, config = parse_args_and_config(['--runner', 'Fb3p_Runner', '--config', 'finite_banking_3p.yml', '--doc', 'finite_banking_3_period'])
                                         #'--test', '--num_test_batch', '4','--resume_training', '200'])
     runner = eval(args.runner)(args, config)
     if not args.test:
         runner.train()
-    else:
+    else: 
         runner.test()
     return 0
 

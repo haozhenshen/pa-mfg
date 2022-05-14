@@ -1,5 +1,5 @@
 training:
-    n_epochs: 200
+    n_epochs: 5
     ngpu: 1
     optim_steps: 20
     plot_freq: 4
@@ -22,7 +22,7 @@ model:
     nt: 157 
     r: 0.9
     k: 2
-    n: [2048, 2048]
+    n: [4096, 4096]
     pi: [0.25, 0.75]
     h: [0.2, 0.5]
     sigma: [0.1, 0.15]

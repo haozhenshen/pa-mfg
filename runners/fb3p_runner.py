@@ -114,8 +114,8 @@ class Fb3p_Runner():
                 dB = SampleBMIncr(self.args, self.config.model)
                 init_x = sample_mu(self.args, self.config.model)
                 sloss=0
-                if k % self.config.training.plot_freq == 0:
-                    plot_path(k, models, fb3p_getpath, self.args, self.config.model)
+                # if k % self.config.training.plot_freq == 0:
+                #     plot_path(k, models, fb3p_getpath, self.args, self.config.model)
                 for _ in range(0, self.config.training.optim_steps):
                     optimizer.zero_grad()
                     loss = fb3p_mse(dB, init_x, self.config.model.delta, models, self.config.model)

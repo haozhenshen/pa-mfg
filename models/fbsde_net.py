@@ -13,15 +13,20 @@ class Network(nn.Module):
         #Construct network
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         nn.init.xavier_uniform_(self.fc1.weight)
+        self.bn1 = nn.BatchNorm1d(self.fc1_dims)
+
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         nn.init.xavier_uniform_(self.fc2.weight)
+        self.bn2 = nn.BatchNorm1d(self.fc2_dims)
+
+
         self.fc3 = nn.Linear(self.fc2_dims, self.n_out)
         nn.init.xavier_uniform_(self.fc3.weight)
         
 
     #def forward(self, x0, sigma, rho, dB, N, NT)
     def forward(self, input):
-        x = torch.relu(self.fc1(input))
-        x= torch.relu(self.fc2(x))
+        x = torch.relu(self.bn1(self.fc1(input)))
+        x= torch.relu(self.bn2(self.fc2(x)))
         output = self.fc3(x)
         return output
