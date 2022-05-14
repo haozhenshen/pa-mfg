@@ -202,5 +202,8 @@ class Fb3p_Runner():
                 double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{name}_CI.png', 
                             self.args, self.config.model, ci=True, title=f'{key} Paths 95% CI')
                 plt.clf()
+                histplot(plots[key], 5, self.args.log + f'/plots/{key}_hist.png', self.config.model, title=f'{name} Distributions')
+                plt.clf()
+                
             double_plot(plots['s_cur_plot'][0], plots['s_prev_plot'][0], self.args.log + f'/plots/layered_price.png', 
                         self.args, self.config.model, price=True, xlab='Time', ylab=None, title=f'Layered Price Paths')

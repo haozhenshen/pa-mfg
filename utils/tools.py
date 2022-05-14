@@ -1,7 +1,7 @@
 import numpy as np
 import torch as torch
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 
 
 def sample_mu(args, config):
@@ -187,6 +187,14 @@ def double_plot(path0, path1, loc, args, config, ci=False, price=False, xlab='Ti
         plt.legend()
         plt.savefig(loc, dpi=600)
 
+
+def histplot(path, time_stamps, loc, config, title=None):
+    for k in range(config.k):
+        for i in range(0,time_stamps):
+            ax = sns.distplot(path[k][:,26*i], label = 'step ' + str(i*26))
+            ax.legend()
+        plt.title(title + f' (Population {k})')
+        plt.savefig(loc, dpi=600)
 
 
 def save_model(models, batch, delta, args, config):
