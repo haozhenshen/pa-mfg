@@ -169,10 +169,37 @@ class Fb3p_Runner():
             
 
             for key in plots.keys():
+                name = {
+                    'x_plot': 'Inventory X',
+                    'n_plot': 'Adjoint Process N',
+                    'y_plot': 'Adjoint Process Y',
+                    'a_plot': 'Adjoint Process A',
+                    'lam_plot': 'Adjoint Process $\Lambda$',
+                    'u_plot': 'Adjoint Process U',
+                    'v_plot': 'Adjoint Process V',
+                    'h_plot': 'Adjoint Process H',
+                    'phi_plot': 'Adjoint Process $\Phi$',
+                    'g_rental_plot': 'Rental Generation g',
+                    'cum_g_rental_plot': 'Cumulative Rental Generation $g$',
+                    'gam_cur_plot': 'Current Trading Rate $\Gamma^{(0)}$',
+                    'gam_prev_plot': 'Previous Trading Rate $\Gamma^{(-1)}$',
+                    'cum_gam_cur_plot': 'Current Cumulative Trading Rate $\int\Gamma^{(0)}$',
+                    'cum_gam_prev_plot': 'Previous Cumulative Trading Rate $\int\Gamma^{(-1)}$',
+                    'cum_gam_cur_vol_plot': 'Current Cumulative Trading Volume $\int|\Gamma^{(0)|}$',
+                    'cum_gam_prev_vol_plot': 'Current Cumulative Trading Volume $\int|\Gamma^{(-1)|}$',
+                     's_cur_plot': 'Current Price s_cur',
+                    's_prev_plot': 'Previous Price s_prev',
+                    'expan_rate_plot': 'Expansion Rate a',
+                    'cum_expan_rate_plot': 'Cumulative Expansion Rate c',
+                    'theta_plot': 'Theta \Gamma^{(-1)}dt'
+                }[key]
+                
+                    
+
                 plt.clf()
-                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}.png', self.args, self.config.model, title=f'{key} Paths')
+                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}.png', self.args, self.config.model, title=f'{name} Paths')
                 plt.clf()
-                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}_CI.png', 
+                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{name}_CI.png', 
                             self.args, self.config.model, ci=True, title=f'{key} Paths 95% CI')
                 plt.clf()
             double_plot(plots['s_cur_plot'][0], plots['s_prev_plot'][0], self.args.log + f'/plots/layered_price.png', 
