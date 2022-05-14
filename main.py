@@ -20,7 +20,7 @@ def parse_args_and_config(args):
     parser.add_argument('--logs', type=str, default='log', help='Path for saving running related data.')
     parser.add_argument('--doc', type=str, default='naive_3_period', help='A string for documentation purpose')
     parser.add_argument('--test', action='store_true', help='Test model.')
-    parser.add_argument('--num_test_batch', type=int, default=1, help='Number of batches of path to generate.')
+    parser.add_argument('--num_test_batch', type=int, default=4, help='Number of batches of path to generate.')
     parser.add_argument('--resume_training',  type=int, default=0, help='Resume training from certain epoch')
     parser.add_argument('-o', '--plot_folder', type=str, default='plots', help="The directory of plot outputs")
     
