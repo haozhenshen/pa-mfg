@@ -132,6 +132,7 @@ class Fb3p_Runner():
                 pbar.set_postfix({'avg_loss': avgloss})
                 if k % 50 == 0 and k != 0:
                     save_model(models, k, self.config.model.delta, self.args, self.config.model)
+                print('avg_loss: ' + str(avgloss))
             save_model(models, self.config.training.n_epochs, self.config.model.delta, self.args, self.config.model)
     
     def test(self):
