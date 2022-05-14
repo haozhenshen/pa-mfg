@@ -1,7 +1,7 @@
 import numpy as np
 import torch as torch
 import matplotlib.pyplot as plt
-import imageio
+
 
 
 def sample_mu(args, config):
@@ -58,83 +58,83 @@ def get_cmap(n, name='hsv'):
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
 
-def plot_path(batch, models, get_path, args, config):
-    n = config.n
-    k = config.k
-    t = config.t
-    nt = config.nt
-    dB = SampleBMIncr(args, config)
-    init_x =  sample_mu(args, config)
-    paths = get_path(dB, init_x, models, config)
+# def plot_path(batch, models, get_path, args, config):
+#     n = config.n
+#     k = config.k
+#     t = config.t
+#     nt = config.nt
+#     dB = SampleBMIncr(args, config)
+#     init_x =  sample_mu(args, config)
+#     paths = get_path(dB, init_x, models, config)
 
-    for i in range(k):
-        number_of_paths = 64
-        idx_list = np.random.choice(n[i], number_of_paths, replace = False)
-        if config.name == "fb3p":
-            plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
-                                        'lam_plot','u_plot','v_plot','h_plot','phi_plot',
-                                        'g_rental_plot','cum_g_rental_plot','gam_cur_plot',
-                                        'gam_prev_plot','cum_gam_cur_plot','cum_gam_prev_plot', 
-                                        'cum_gam_cur_vol_plot', 'cum_gam_prev_vol_plot', 's_cur_plot', 
-                                        's_prev_plot', 'expan_rate_plot', 'cum_expan_rate_plot', 'theta_plot']}
-        elif config.name == "naive3p":
-            plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
-                                        'u_plot','v_plot','h_plot',
-                                        'g_rental_plot','cum_g_rental_plot','gam_plot',
-                                        'cum_gam_plot',
-                                        'cum_gam_vol_plot', 's_plot', 
-                                        'expan_rate_plot', 'cum_expan_rate_plot']}
-        for key in plots.keys():
-            plots[key] = paths[key[:-5] + '_path'][i].detach().numpy()[idx_list]
+#     for i in range(k):
+#         number_of_paths = 64
+#         idx_list = np.random.choice(n[i], number_of_paths, replace = False)
+#         if config.name == "fb3p":
+#             plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
+#                                         'lam_plot','u_plot','v_plot','h_plot','phi_plot',
+#                                         'g_rental_plot','cum_g_rental_plot','gam_cur_plot',
+#                                         'gam_prev_plot','cum_gam_cur_plot','cum_gam_prev_plot', 
+#                                         'cum_gam_cur_vol_plot', 'cum_gam_prev_vol_plot', 's_cur_plot', 
+#                                         's_prev_plot', 'expan_rate_plot', 'cum_expan_rate_plot', 'theta_plot']}
+#         elif config.name == "naive3p":
+#             plots = {key: [] for key in ['x_plot','n_plot', 'y_plot','a_plot',
+#                                         'u_plot','v_plot','h_plot',
+#                                         'g_rental_plot','cum_g_rental_plot','gam_plot',
+#                                         'cum_gam_plot',
+#                                         'cum_gam_vol_plot', 's_plot', 
+#                                         'expan_rate_plot', 'cum_expan_rate_plot']}
+#         for key in plots.keys():
+#             plots[key] = paths[key[:-5] + '_path'][i].detach().numpy()[idx_list]
         
-        t_nt = np.array([i for i in range(0, nt)]) * t/(nt-1)
+#         t_nt = np.array([i for i in range(0, nt)]) * t/(nt-1)
         
-        cmap = get_cmap(len(plots))
-        color = 0
-        for key in plots.keys():
-            mod_key = 'z_' + key[:-5] + '_models'
-            if mod_key in models.keys():
-                time_steps = len(models[mod_key][0]) + 1
-                t_t = np.array([i for i in range(0, time_steps)]) * t/(nt-1)
-                for s in range(number_of_paths):
-                        plt.plot(t_t, plots[key][s], color=cmap(color), alpha=0.5)
-            else:
-                for s in range(number_of_paths):
-                        plt.plot(t_nt, plots[key][s], color=cmap(color), alpha=0.5)
-            color += 1
-            plt.title(key.strip('_plot') + f' Batch_{batch}')
-            plt.savefig(args.log + f'/paths/' + key[:-5] + f'_pop_{i + 1}_batch_{batch}.png')
-            plt.close() 
+#         cmap = get_cmap(len(plots))
+#         color = 0
+#         for key in plots.keys():
+#             mod_key = 'z_' + key[:-5] + '_models'
+#             if mod_key in models.keys():
+#                 time_steps = len(models[mod_key][0]) + 1
+#                 t_t = np.array([i for i in range(0, time_steps)]) * t/(nt-1)
+#                 for s in range(number_of_paths):
+#                         plt.plot(t_t, plots[key][s], color=cmap(color), alpha=0.5)
+#             else:
+#                 for s in range(number_of_paths):
+#                         plt.plot(t_nt, plots[key][s], color=cmap(color), alpha=0.5)
+#             color += 1
+#             plt.title(key.strip('_plot') + f' Batch_{batch}')
+#             plt.savefig(args.log + f'/paths/' + key[:-5] + f'_pop_{i + 1}_batch_{batch}.png')
+#             plt.close() 
         
       
         
         
-def create_gif_for_pop_k(k, args, config):
-    if config.name == "fb3p":
-        filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h','phi',
-                                    'g_rental','cum_g_rental','gam_cur',
-                                    'gam_prev','cum_gam_cur','cum_gam_prev', 
-                                    'cum_gam_cur_vol', 'cum_gam_prev_vol', 's_cur', 
-                                    's_prev', 'expan_rate', 'cum_expan_rate', 'theta']}
-    elif config.name == "naive3p":
-        filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h',
-                                    'g_rental','cum_g_rental','gam',
-                                    'cum_gam',
-                                    'cum_gam_vol' , 's', 
-                                    'expan_rate', 'cum_expan_rate']}
+# def create_gif_for_pop_k(k, args, config):
+#     if config.name == "fb3p":
+#         filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h','phi',
+#                                     'g_rental','cum_g_rental','gam_cur',
+#                                     'gam_prev','cum_gam_cur','cum_gam_prev', 
+#                                     'cum_gam_cur_vol', 'cum_gam_prev_vol', 's_cur', 
+#                                     's_prev', 'expan_rate', 'cum_expan_rate', 'theta']}
+#     elif config.name == "naive3p":
+#         filenames = {key: [] for key in ['x', 'n','y', 'a', 'u','v','h',
+#                                     'g_rental','cum_g_rental','gam',
+#                                     'cum_gam',
+#                                     'cum_gam_vol' , 's', 
+#                                     'expan_rate', 'cum_expan_rate']}
     
-    for i in range(0, config.training.n_epochs, config.training.plot_freq):
-        # create file name and append it to a list
+#     for i in range(0, config.training.n_epochs, config.training.plot_freq):
+#         # create file name and append it to a list
         
-        for key in filenames.keys():
-            filenames[key].append(args.log + 'paths/' + key + f'_pop_{k}_batch_{i}.png')
+#         for key in filenames.keys():
+#             filenames[key].append(args.log + 'paths/' + key + f'_pop_{k}_batch_{i}.png')
         
 
-    for key in filenames.keys():
-        with imageio.get_writer(args.log + 'paths/' + key + f'_pop_{k}.gif', mode='I', duration=0.75) as writer:
-            for filename in filenames[key]:
-                image = imageio.imread(filename)
-                writer.append_data(image)
+#     for key in filenames.keys():
+#         with imageio.get_writer(args.log + 'paths/' + key + f'_pop_{k}.gif', mode='I', duration=0.75) as writer:
+#             for filename in filenames[key]:
+#                 image = imageio.imread(filename)
+#                 writer.append_data(image)
 
 
 def CI(paths):
