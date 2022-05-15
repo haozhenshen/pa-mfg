@@ -199,8 +199,8 @@ class Fb3p_Runner():
                 plt.clf()
                 double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}.png', self.args, self.config.model, title=f'{name} Paths')
                 plt.clf()
-                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{name}_CI.png', 
-                            self.args, self.config.model, ci=True, title=f'{key} Paths 95% CI')
+                double_plot(plots[key][0], plots[key][1], self.args.log + f'/plots/{key}_CI.png', 
+                            self.args, self.config.model, ci=True, title=f'{name} Paths 95% CI')
                 plt.clf()
                 plot_histogram(plots[key], 5, self.args.log + f'/plots/{key}_hist.png', self.config.model, title=f'{name} Distributions')
                 plt.clf()
