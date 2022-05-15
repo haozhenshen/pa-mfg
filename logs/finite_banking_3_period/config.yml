@@ -1,0 +1,52 @@
+!!python/object:argparse.Namespace
+model: !!python/object:argparse.Namespace
+  beta:
+  - 1
+  - 1
+  delta: 0.1
+  gamma_cur:
+  - 1.25
+  - 1.75
+  gamma_prev:
+  - 1.25
+  - 1.75
+  h:
+  - 0.2
+  - 0.5
+  k: 2
+  layer_dim: 128
+  m:
+  - 0.1
+  - 0.1
+  n:
+  - 4096
+  - 4096
+  name: fb3p
+  nt: 157
+  pi:
+  - 0.25
+  - 0.75
+  r: 0.9
+  sigma:
+  - 0.1
+  - 0.15
+  t: 3
+  t1: 53
+  t2: 105
+  v:
+  - 0.6
+  - 0.2
+  zeta:
+  - 1.75
+  - 1.25
+optim: !!python/object:argparse.Namespace
+  amsgrad: false
+  beta1: 0.9
+  lr: 0.001
+  optimizer: Adam
+  weight_decay: 0.0
+training: !!python/object:argparse.Namespace
+  n_epochs: 5
+  ngpu: 1
+  optim_steps: 20
+  plot_freq: 4
